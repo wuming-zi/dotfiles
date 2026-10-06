@@ -1,0 +1,106 @@
+[[input.prepend_keymap]]
+on   = "<Esc>"
+run  = "close"
+desc = "Cancel input"
+
+[mgr]
+prepend_keymap = [
+  { on = [ "s", "d" ], run = "search fd", desc = "Search files by name (fd)" },
+  { on = [ "s", "g"], run = "search rg", desc = "Search files by content (rg)" },
+  { on = [ "s", "f"], run = "search rg", desc = "Interactive search files by content (fzf)" },
+
+
+  # ---- 基础操作 ----
+  { on = "<C-/>", for = "unix", run = 'shell "$SHELL" --block', desc = "Open $SHELL here" },
+  { on = "p", run = "plugin smart-paste", desc = "Paste into the hovered directory or CWD" },
+  { on = "l", run = "plugin bypass smart-enter", desc = "Open a file, or recursively enter child directory" },
+  { on = "h", run = "plugin bypass reverse", desc = "Go back, skipping parent folder with only a single subdirectory" },
+  # { on = "y", run = [ 'shell -- for path in %s; do echo "file://$path"; done | wl-copy -t text/uri-list', "yank" ], desc = "copy file path to system clipboard" },
+  { on = [ "g", "r" ], run = 'shell -- ya emit cd "$(git rev-parse --show-toplevel)"', desc = "goto the root dir(git)" },
+
+  # ---- 视图 ----
+  { on = "<C-g>", run = 'shell -- rofi -theme fullscreen-preview -show filebrowser -filebrowser-command "ya emit reveal" -filebrowser-directory "$(pwd)"', desc = "Grid view" },
+  { on = "<C-h>", run = "plugin toggle-pane min-preview", desc = "Show or hide the preview pane" },
+  { on = "<C-m>", run = "plugin toggle-pane max-preview", desc = "Maximize or restore the preview pane" },
+  { on = "K", run = "plugin parent-arrow -1" },
+  { on = "J", run = "plugin parent-arrow 1" },
+
+  # ---- 退出 ----
+  { on = "q", run = "plugin confirm-quit" },
+
+  # ---- 邮件附件 ----
+  { on = "<C-m>", run = '''shell --
+	paths=$(for p in %s; do echo "$p"; done | paste -s -d,)
+	thunderbird -compose "attachment='$paths'"
+''' },
+
+  # ---- 文件操作 ----
+  { on = [ "c", "m" ], run = "plugin chmod", desc = "Chmod on selected files" },
+  { on = "<C-d>", run = "plugin diff", desc = "Diff the selected with the hovered file" },
+  { on = [ "C" ], run = "plugin ouch", desc = "Compress with ouch" },
+  { on = "M", run = "plugin mount" },
+
+  # ---- recycle-bin ----
+  { on = ["R","o"], run = "plugin recycle-bin -- open",        desc = "Open Trash" },
+  { on = ["R","e"], run = "plugin recycle-bin -- empty",       desc = "Empty Trash" },
+  { on = ["R","D"], run = "plugin recycle-bin -- emptyDays",   desc = "Empty by days deleted" },
+  { on = ["R","d"], run = "plugin recycle-bin -- delete",      desc = "Delete from Trash" },
+  { on = ["R","r"], run = "plugin recycle-bin -- restore",     desc = "Restore from Trash" },
+
+  # ---- restore ----
+  { on = [ "u", "U" ], run = "plugin restore", desc = "Restore last deleted files/folders" },
+  # { on = ["u", "u"], run = "plugin restore", desc = "Restore last deleted files/folders" },
+  { on = [ "u", "U" ], run = "plugin restore -- --interactive", desc = "Restore deleted files/folders (Interactive)" },
+  # { on = [ "u", "U" ], run = "plugin restore -- --interactive --interactive-overwrite", desc = "Restore deleted files/folders (Interactive overwrite)" },
+
+  # ---- whoosh ----
+  # Jump by key
+  { on = ["z"], run = "plugin whoosh jump_by_key", desc = "Jump bookmark by key" },
+  # Direct fuzzy search access
+  { on = ["b","f"], run = "plugin whoosh jump_by_fzf", desc = "Direct fuzzy search for bookmarks" },
+
+  # Basic bookmark operations
+  { on = [ "b", "A" ], run = "plugin whoosh save", desc = "Add bookmark (hovered file/directory)" },
+  { on = [ "b", "a" ], run = "plugin whoosh save_cwd", desc = "Add bookmark (current directory)" },
+
+  # Temporary bookmarks
+  { on = [ "b", "T" ], run = "plugin whoosh save_temp", desc = "Add temporary bookmark (hovered file/directory)" },
+  { on = [ "b", "t" ], run = "plugin whoosh save_cwd_temp", desc = "Add temporary bookmark (current directory)" },
+
+  # Jump to bookmarks
+  { on = "<A-k>", run = "plugin whoosh jump_key_k", desc = "Jump directly to bookmark with key k" },
+
+  # Delete bookmarks
+  { on = [ "b", "d" ], run = "plugin whoosh delete_by_key", desc = "Delete bookmark by key" },
+  { on = [ "b", "D" ], run = "plugin whoosh delete_by_fzf", desc = "Delete bookmarks by fzf (use TAB to select multiple)" },
+  { on = [ "b", "C" ], run = "plugin whoosh delete_all", desc = "Delete all user bookmarks" },
+
+  # Rename bookmarks
+  { on = [ "b", "r" ], run = "plugin whoosh rename_by_key", desc = "Rename bookmark by key" },
+  { on = [ "b", "R" ], run = "plugin whoosh rename_by_fzf", desc = "Rename bookmark by fzf" },
+
+  # ---- zoom ----
+  { on = "=", run = "plugin zoom 1", desc = "Zoom in hovered file" },
+  { on = "-", run = "plugin zoom -1", desc = "Zoom out hovered file" },
+
+  # ---- projects ----
+  { on = [ "P", "s" ], run = "plugin projects save", desc = "Save current project" },
+  { on = [ "P", "S" ], run = "plugin projects save_last", desc = "Save current project to last" },
+  { on = [ "P", "l" ], run = "plugin projects load", desc = "Load project" },
+  { on = [ "P", "P" ], run = "plugin projects load_last", desc = "Load last project" },
+  { on = [ "P", "d" ], run = "plugin projects delete", desc = "Delete project" },
+  { on = [ "P", "D" ], run = "plugin projects delete_all", desc = "Delete all projects" },
+  { on = [ "P", "m" ], run = "plugin projects 'merge current'", desc = "Merge current tab to other projects" },
+  { on = [ "P", "M" ], run = "plugin projects 'merge all'", desc = "Merge current project to other projects" },
+
+  # ------ linemode-plus plugin ------
+  { on = [ "i", "c" ], run = "linemode size_mtime", desc = "Linemode: size+mtime" },
+    
+  # Sorting does not override linemode (recommended) 
+  { on = [ ",", "m" ], run = [ "sort mtime --reverse=no" ], desc = "Sort by modified time" },
+  { on = [ ",", "M" ], run = [ "sort mtime --reverse=yes" ], desc = "Sort by modified time (reverse)" },
+  { on = [ ",", "b" ], run = [ "sort btime --reverse=no" ], desc = "Sort by birth time" },
+  { on = [ ",", "B" ], run = [ "sort btime --reverse=yes" ], desc = "Sort by birth time (reverse)" },
+  { on = [ ",", "s" ], run = [ "sort size --reverse=no" ], desc = "Sort by size" },
+  { on = [ ",", "S" ], run = [ "sort size --reverse=yes" ], desc = "Sort by size (reverse)" },
+]

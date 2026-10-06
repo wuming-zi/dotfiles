@@ -1,0 +1,473 @@
+# p10k在终端模拟器大小改变的时候会乱码，改用starship，日后熟练可删
+# TODO: del me
+# if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+#   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+# fi
+
+# Add in Powerlevel10k
+# zinit ice depth=1; zinit light romkatv/powerlevel10k
+
+# Set the directory we want to store zinit and plugins
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+
+# Download Zinit, if it's not there yet
+#查看zinit下载方式，最好用pacman
+# if [ ! -d "$ZINIT_HOME" ]; then
+#    mkdir -p "$(dirname $ZINIT_HOME)"
+#    git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+# fi
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+#[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+export STARSHIP_VI_MODE_DISABLE=1
+export STARSHIP_CONFIG=~/.config/starship/starship.toml
+eval "$(starship init zsh)"
+
+# Source/Load zinit
+source "${ZINIT_HOME}/zinit.zsh"
+
+# Add in zsh plugins
+zinit light zsh-users/zsh-syntax-highlighting
+zinit light zsh-users/zsh-completions
+zinit light zsh-users/zsh-autosuggestions
+zinit light Aloxaf/fzf-tab
+# zinit light jeffreytse/zsh-vi-mode
+
+# Add in snippets
+zinit snippet OMZP::git                 #git命令简化 ga=git add, gc=git commit
+zinit snippet OMZP::sudo                #双击ESC命令自动加sudo
+# zinit snippet OMZP::tmuxinator        #tmux的命令补全
+zinit snippet OMZP::docker              #docker命令简化
+zinit snippet OMZP::command-not-found   #命令不存在时给提示 neovim :not found, do youmean nvim?
+
+# Disable the cursor style feature
+# ZVM_CURSOR_STYLE_ENABLED=false
+# ZVM_INSERT_MODE_CURSOR=$ZVM_CURSOR_BLINKING_BEAM        #zsh vi模式下的光标样式，默认与vi相同
+# ZVM_NORMAL_MODE_CURSOR=$ZVM_CURSOR_BLINKING_BLOCK
+# ZVM_OPPEND_MODE_CURSOR=$ZVM_CURSOR_BLINKING_UNDERLINE
+#
+# Load completions
+autoload -Uz compinit && compinit       #智能化命令补全系统，tab触发，auto suggestion是方向键触发
+
+# function zvm_after_init(){
+#     bindkey -M vicmd "^[." insert-last-word
+#    bindkey -M viins "^[." insert-last-word
+# }
+
+zinit cdreplay -q                       #保证有依赖的插件能被正确加载，放在zinit的最后进行收尾工作
+
+#######################################################
+# ZSH Basic Options
+#######################################################
+
+setopt autocd              # change directory just by typing its name
+setopt correct             # auto correct mistakes
+setopt interactivecomments # allow comments in interactive mode
+#对执行失败的命令不进行展开 eg: ls *.txt 保留注释会报错，取消注释会 ls '*.txt' 以继续执行
+#setopt magicequalsubst     # enable filename expansion for arguments of the form ‘anything=expression’
+setopt nonomatch           # hide error message if there is no match for the pattern
+setopt notify              # report the status of background jobs immediately
+setopt numericglobsort     # sort filenames numerically when it makes sense
+setopt promptsubst         # enable command substitution in prompt
+
+#######################################################
+# Environment Variables
+#######################################################
+export EDITOR=nvim
+export VISUAL=nvim
+#export EDITOR=nvim visudo
+#export VISUAL=nvim visudo
+export SUDO_EDITOR=nvim
+export FCEDIT=nvim                                      #输入fc可编辑历史命令，编辑器使用nvim
+export TERMINAL=wezterm
+export BROWSER=firefox
+
+
+# Proxy settings
+export http_proxy="http://127.0.0.1:7890"
+export https_proxy="http://127.0.0.1:7890"
+export all_proxy="socks5://127.0.0.1:7890"
+export no_proxy="localhost,127.0.0.1"
+
+if [[ -x "$(command -v bat)" ]]; then                   #如果找到了bat命令(安装了)，就执行下面的命令
+	export MANPAGER="sh -c 'col -bx | bat -l man -p'"   #把 man 手册通过 bat 渲染（彩色分页），并把 PAGER 设为 bat。
+	export PAGER=bat
+fi
+
+if [[ -x "$(command -v fzf)" ]]; then                   #如果装了 fzf：设置其默认参数——反向布局、圆角边框、以及一整套 Tokyo Night 配色
+	export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS \
+	  --info=inline-right \
+	  --ansi \
+	  --layout=reverse \
+	  --border=rounded \
+	  --color=border:#27a1b9 \
+	  --color=fg:#c0caf5 \
+	  --color=gutter:#16161e \
+	  --color=header:#ff9e64 \
+	  --color=hl+:#2ac3de \
+	  --color=hl:#2ac3de \
+	  --color=info:#545c7e \
+	  --color=marker:#ff007c \
+	  --color=pointer:#ff007c \
+	  --color=prompt:#2ac3de \
+	  --color=query:#c0caf5:regular \
+	  --color=scrollbar:#27a1b9 \
+	  --color=separator:#ff9e64 \
+	  --color=spinner:#ff007c \
+	"
+fi
+
+#######################################################
+# ZSH Keybindings
+#######################################################
+
+bindkey -v                                       #开启vi模式
+# bindkey '^p' history-search-backward
+# bindkey '^n' history-search-forward
+# bindkey '^[w' kill-region
+# bindkey ' ' magic-space                           # do history expansion on space
+bindkey "^[[A" history-beginning-search-backward  # search history with up key
+bindkey "^[[B" history-beginning-search-forward   # search history with down key
+
+bindkey -M viins '^[[A' up-history \
+                 '^[OA' up-history \
+                 '^[[B' down-history \
+                 '^[OB' down-history
+# 按单词移动
+bindkey "^H" vi-backward-word          # Ctrl+H 向后一个单词
+bindkey "^L" vi-forward-word           # Ctrl+L 向前一个单词
+
+# Ctrl+方向键
+bindkey "^[[1;5D" vi-backward-word    # Ctrl+← 向后
+bindkey "^[[1;5C" vi-forward-word     # Ctrl+→ 向前
+
+bindkey '^H' backward-kill-word  # Ctrl + Backspace 删除前一个单词
+#######################################################
+# History Configuration
+#######################################################
+
+HISTSIZE=10000
+HISTFILE=~/.zsh_history
+SAVEHIST=$HISTSIZE
+HISTDUP=erase
+setopt appendhistory
+setopt sharehistory
+setopt hist_ignore_space
+setopt hist_ignore_all_dups
+setopt hist_save_no_dups
+setopt hist_ignore_dups
+setopt hist_find_no_dups
+
+#######################################################
+# Completion styling
+#######################################################
+
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'                      #让补全忽略大小写
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"                     #补全列表带颜色
+zstyle ':completion:*' menu no                                              #禁用补全菜单（直接列出）
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'          # cd 时 fzf 预览目录
+zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'  # zoxide 预览
+zstyle ':completion:*:*:docker:*' option-stacking yes                       # docker 选项堆叠
+zstyle ':completion:*:*:docker-*:*' option-stacking yes
+
+zstyle ':completion:*:*:z:*' completer _zoxide_z
+zstyle ':completion:*:*:z:*' tag-order '! users groups'
+# z() {
+#   if [ $# -eq 0 ]; then
+#     # 没有参数：用 fzf 显示所有历史目录（全局）
+#     cd "$(zoxide query -l | fzf --height 40% --border --preview 'ls -la {}')"
+#   else
+#     # 有参数：正常跳转
+#     cd "$(zoxide query "$@")"
+#   fi
+# }
+#######################################################
+# Add Common Binary Directories to Path
+#######################################################
+
+# Add directories to the end of the path if they exist and are not already in the path
+# Link: https://superuser.com/questions/39751/add-directory-to-path-if-its-not-already-there
+function pathappend() {
+    for ARG in "$@"
+    do
+        if [ -d "$ARG" ] && [[ ":$PATH:" != *":$ARG:"* ]]; then
+            PATH="${PATH:+"$PATH:"}$ARG"
+        fi
+    done
+}
+
+# Add directories to the beginning of the path if they exist and are not already in the path
+function pathprepend() {
+    for ARG in "$@"
+    do
+        if [ -d "$ARG" ] && [[ ":$PATH:" != *":$ARG:"* ]]; then
+            PATH="$ARG${PATH:+":$PATH"}"
+        fi
+    done
+}
+
+# y shell wrapper that provides the ability to change the current working directory when exiting Yazi.
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+	yazi "$@" --cwd-file="$tmp"
+	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		builtin cd -- "$cwd"
+	fi
+	rm -f -- "$tmp"
+}
+
+# Add the most common personal binary paths located inside the home folder
+# (these directories are only added if they exist)
+pathprepend "$HOME/bin" "$HOME/sbin" "$HOME/.local/bin" "$HOME/local/bin" "$HOME/.bin"
+
+# Check for the Rust package manager binary install location
+# Link: https://doc.rust-lang.org/cargo/index.html
+pathappend "$HOME/.cargo/bin"
+
+# Add Tmuxifier to path
+pathappend "$HOME/.config/tmux/plugins/tmuxifier/bin"
+
+#######################################################
+# Aliases
+#######################################################
+
+alias c='clear'
+alias q='exit'
+alias ..='cd ..'
+alias mkdir='mkdir -pv'                     # 建目录并打印、自动建父目录
+alias cp='cp -iv'                           # 复制时交互确认 + 显示详细信息
+alias mv='mv -iv'
+alias rm='rm -iv'
+alias rmdir='rmdir -v'
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'            # 兼容旧版本sh用法
+alias egrep='egrep --color=auto'
+
+# Alias for neovim
+if [[ -x "$(command -v nvim)" ]]; then
+	alias vi='nvim'
+	alias vim='nvim'
+	alias nv='nvim'
+	alias svi='sudo nvim'
+	# alias vis='nvim "+set si"'            # nvim自动缩进
+elif [[ -x "$(command -v vim)" ]]; then
+	alias v='vim'
+	alias vi='vim'
+	alias svi='sudo vim'
+	alias vis='vim "+set si"'
+fi
+
+
+#！！！！！！！！！！！！！！！！need eza ver
+
+# Alias for lsd
+if [[ -x "$(command -v lsd)" ]]; then
+	alias ls='lsd -F --group-dirs first'
+	alias ll='lsd --all --header --long --group-dirs first'
+	alias tree='lsd --tree'
+fi
+
+# Alias to launch a document, file, or URL in it's default X application
+if [[ -x "$(command -v xdg-open)" ]]; then
+	alias open='xdg-open'
+fi
+
+#gnome官方pdf阅读器
+# Alias to launch a document, file, or URL in it's default PDF reader
+if [[ -x "$(command -v evince)" ]]; then
+    alias pdf='evince'
+fi
+
+# Alias For bat
+# Link: https://github.com/sharkdp/bat
+if [[ -x "$(command -v bat)" ]]; then
+    alias cat='bat'
+fi
+
+# Alias for lazygit
+# Link: https://github.com/jesseduffield/lazygit
+if [[ -x "$(command -v lazygit)" ]]; then
+    alias lg='lazygit'
+fi
+
+# Alias for FZF
+# Link: https://github.com/junegunn/fzf
+if [[ -x "$(command -v fzf)" ]]; then
+    alias fzf='fzf --preview "bat --style=numbers --color=always --line-range :500 {}"'
+    # Alias to fuzzy find files in the current folder(s), preview them, and launch in an editor
+	if [[ -x "$(command -v xdg-open)" ]]; then
+		alias preview='open $(fzf --info=inline --query="${@}")'
+	else
+		alias preview='edit $(fzf --info=inline --query="${@}")'
+	fi
+fi
+
+# Get local IP addresses
+if [[ -x "$(command -v ip)" ]]; then
+    alias iplocal="ip -br -c a"
+else
+    alias iplocal="ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'"
+fi
+
+# Get public IP addresses
+if [[ -x "$(command -v curl)" ]]; then
+    alias ipexternal="curl -s ifconfig.me && echo"
+elif [[ -x "$(command -v wget)" ]]; then
+    alias ipexternal="wget -qO- ifconfig.me && echo"
+fi
+
+
+#######################################################
+# Functions
+#######################################################
+
+# Copy file with a progress bar
+function cpp() {
+	if [[ -x "$(command -v rsync)" ]]; then
+		# rsync -avh --progress "${1}" "${2}"
+		rsync -ah --info=progress2 "${1}" "${2}"
+	else
+		set -e
+		strace -q -ewrite cp -- "${1}" "${2}" 2>&1 \
+		| awk '{
+		count += $NF
+		if (count % 10 == 0) {
+			percent = count / total_size * 100
+			printf "%3d%% [", percent
+			for (i=0;i<=percent;i++)
+				printf "="
+				printf ">"
+				for (i=percent;i<100;i++)
+					printf " "
+					printf "]\r"
+				}
+			}
+		END { print "" }' total_size=$(stat -c '%s' "${1}") count=0
+	fi
+}
+
+# Copy and go to the directory
+function cpg() {
+	if [[ -d "$2" ]];then
+		cp "$1" "$2" && cd "$2"
+	else
+		cp "$1" "$2"
+	fi
+}
+
+# Move and go to the directory
+function mvg() {
+	if [[ -d "$2" ]];then
+		mv "$1" "$2" && cd "$2"
+	else
+		mv "$1" "$2"
+	fi
+}
+
+# Create and go to the directory
+function mkdirg() {
+	mkdir -p "$@" && cd "$@"
+}
+
+# Prints random height bars across the width of the screen
+# (great with lolcat application on new terminal windows)
+function random_bars() {
+	columns=$(tput cols)
+	chars=(▁ ▂ ▃ ▄ ▅ ▆ ▇ █)
+	for ((i = 1; i <= $columns; i++))
+	do
+		echo -n "${chars[RANDOM%${#chars} + 1]}"
+	done
+	echo
+}
+
+#######################################################
+# ZSH Syntax highlighting
+#######################################################
+# source ~/.config/zsh/zsh-syntax-highlightin-tokyonight.zsh
+#！！！！！！！！！！！！！找个主题
+
+#######################################################
+# Shell integrations
+#######################################################
+
+# Set up fzf key bindings and fuzzy completion
+source <(fzf --zsh)     #启用 fzf 的快捷键和模糊补全
+			#（Ctrl+T 插入文件、Ctrl+R 搜索历史命令、Alt+C 查找当前文件夹下的子目录）
+
+#Zoxide config for zsh plugins 
+eval "$(zoxide init zsh)"      #初始化 zoxide（用 cd 作为命令名，实现智能目录跳转），cd跳原生路径，z跳模糊路径
+
+# _smart_complete() {
+#   # 判断是否在 z 命令后
+#   if [[ "$BUFFER" =~ '^z ' ]]; then
+#     local input="${BUFFER#z }"
+#
+#     # 如果输入是绝对路径或相对路径（包含 /）
+#     if [[ "$input" == */* ]]; then
+#       # 走原生补全（让 Zsh 补全实际路径）
+#       zle expand-or-complete
+#       return
+#     fi
+#
+#     # 尝试从历史记录中补全
+#     local completions=($(zoxide query -l "$input" 2>/dev/null))
+#     if [[ ${#completions[@]} -eq 0 ]]; then
+#       # 无匹配 → 全屏搜索
+#       local target
+#       target=$(zoxide query -l | fzf --height 60% --border --prompt="🔍 全局搜索: " --preview "ls -la {}" 2>/dev/tty)
+#       if [[ -n "$target" ]]; then
+#         BUFFER="z $target"
+#         CURSOR=${#BUFFER}
+#         zle reset-prompt
+#       fi
+#       return
+#     fi
+#   fi
+#
+#   # 走原生补全
+#   zle expand-or-complete
+# }
+# zle -N _smart_complete
+# bindkey '^I' _smart_complete
+#
+# 每次切换目录时，自动记录到 zoxide
+autoload -U add-zsh-hook
+add-zsh-hook chpwd _record_to_zoxide
+
+_record_to_zoxide() {
+  zoxide add "$(pwd)" 2>/dev/null
+}
+
+# ============================================
+# eza 别名
+# ============================================
+
+if command -v eza &> /dev/null; then
+    # e：显示所有文件（包括隐藏），人类可读，长列表，目录优先，图标，彩色
+    alias e='eza -lah --time-style="+%Y/%m/%d %H:%M:%S" --group-directories-first --icons --color=auto'
+    # 按大小排序
+    alias es='eza -lah --time-style="+%Y/%m/%d %H:%M:%S" --group-directories-first --icons --color=auto --sort=size'
+    # 按时间排序
+    alias et='eza -lah --time-style="+%Y/%m/%d %H:%M:%S" --group-directories-first --icons --color=auto --sort=time'
+    # eg：在 e 的基础上加 Git 状态
+    alias eg='eza -lah --time-style="+%Y/%m/%d %H:%M:%S" --group-directories-first --icons --color=auto --git'
+    # etree：树形结构
+    alias etree='eza --tree --color=auto'
+    # ll：经典列表
+    alias ll='eza -lah --time-style="+%Y/%m/%d %H:%M:%S" --group-directories-first --icons --color=auto'
+else
+    # 如果 eza 未安装，回退到 ls
+    alias ll='ls -lh --color=auto'
+    alias la='ls -lah --color=auto'
+    alias e='ls -lah --color=auto'
+    alias et='ls -R --color=auto'
+fi
+#Tmuxifier config for zsh plugins  
+#eval "$(tmuxifier init -)"
+### End of Zinit's installer chunk
+### End of Zinit's installer chunk
+### End of Zinit's installer chunk
+
+[[ -f ~/.config/zsh/secrets.zsh ]] && source ~/.config/zsh/secrets.zsh || true

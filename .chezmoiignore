@@ -1,0 +1,28 @@
+# ===== 全局规则 =====
+*.dat
+*.db
+*.cache
+*.dirs
+*.dir
+
+chezmoistate.boltdb
+key.txt.age
+
+# ===== 机密 / 应用数据 =====
+.config/mozilla/**
+.config/chromium/**
+.config/QQ/**
+.config/pulse/**
+.config/dconf/**
+.config/copyq/*.dat
+
+# ===== 残留 / GUI 状态 =====
+.config/pavucontrol.ini
+.config/trashrc
+
+# ===== 生成物 =====
+.config/user-dirs.dirs
+.config/user-dirs.locale
+.config/go/**
+.config/ibus/bus/**
+
